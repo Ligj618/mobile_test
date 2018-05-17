@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="js/vue.js"></script>
+    <script src="js/axios.js"></script>
+    <style>
+        *{
+            margin: 0;padding: 0;
+        }
+        ul,ol li{
+            list-style: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="box">
+        <input type="text" v-model="companyName">
+        <input type="text" v-model="companyDesc">
+        <input type="button" value="添加" @click="add">
+        <ul>
+            <li v-for="item in list">
+                <ol>
+                    <li>{{item.id}}</li>
+                    <li>{{item.name}}</li>
+                    <li>{{item.description}}</li>
+                    <li @click="del(item.id)">删除</li>
+                    <li @click="modify_before(item.id)">修改</li>
+                    <li @click="modify_comfire(item.id)">确认修改</li>
+                  
+                </ol>
+            </li>
+        </ul>
+    </div>
+    <script>
+        new Vue({
+            el:"#box",
+            data:{
+                list:[],
+                companyName:"",
+                companyDesc:""
+            },
+            created(){
+                this.getData();
+            },
+            methods:{
+                getData(){
+                    axios.get("http://localhost:3000/companies",{
+                        params:{
+                            // 查询条件,具体查看接口文档
+                            // id_gte:3,
+                            // id_lte:5
+                        }
+                    }).then((list)=>{
+                        this.list = list.data;
+                    });
+                },
+                add(){
+                    axios.post("http://localhost:3000/companies",{
+                        name:this.companyName,
+                        description:this.companyDesc
+                    },{
+                        headers:{
+                            "Content-Type":"application/json"
+                            }
+                    }).then((res)=>{
+                        // console.log(res);
+                        this.getData();
+                    });
+                    
+                },
+                del(id){
+                    if(confirm("您确定要删除此条数据吗？")){
+                        axios.delete("http://localhost:3000/companies/"+id).then((res)=>{
+                            // console.log(res);
+                            this.getData();
+                        });
+                    }
+                },
+                modify_comfire(id){
+                    axios.patch("http://localhost:3000/companies/"+id,{
+                        name:this.companyName,
+                        description:this.companyDesc
+                    },{
+                        headers:{
+                            "Content-Type":"application/json"
+                            }
+                    }).then((res)=>{
+                        // console.log(res);
+                        this.getData();
+                    });
+                },
+                modify_before(id){
+                    axios.get("http://localhost:3000/companies",{
+                        params:{
+                            id:id
+                        }
+                    }).then((res)=>{
+                        console.log(res);
+                        this.companyName = res.data[0].name;
+                        this.companyDesc = res.data[0].description;
+                        this.getData();
+                    });
+                }
+            }
+        });
+    </script>
+</body>
+</html>
